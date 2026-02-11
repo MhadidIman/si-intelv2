@@ -16,14 +16,17 @@ return new class extends Migration
             $table->string('nama_lengkap');
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
-            $table->string('negara_asal'); // <-- Ini yang tadi hilang/error
+            $table->string('negara_asal');
             $table->string('nomor_paspor');
 
             // Detail Kunjungan
             $table->string('tujuan_kunjungan');
-            $table->string('sponsor')->nullable(); // Penjamin
-            $table->text('tempat_tinggal'); // Alamat di Indonesia
-            $table->date('masa_berlaku_izin'); // Expired Visa/Izin Tinggal
+            $table->string('sponsor')->nullable();
+            $table->text('tempat_tinggal');
+            $table->date('masa_berlaku_izin');
+
+            // === KOLOM WAJIB UNTUK SISTEM VERIFIKASI ===
+            $table->string('status_verifikasi')->default('pending');
 
             $table->string('foto')->nullable();
             $table->timestamps();

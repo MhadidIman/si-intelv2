@@ -14,21 +14,24 @@ return new class extends Migration
 
             // Identitas Organisasi
             $table->string('nama_organisasi');
-            $table->string('nama_pimpinan'); // <-- Ini yang tadi error
+            $table->string('nama_pimpinan');
             $table->text('alamat_sekretariat');
 
             // Detail Legalitas
-            $table->string('bentuk_organisasi'); // Ormas / LSM / Yayasan
-            $table->string('status_legalitas'); // Berbadan Hukum / SKT / Tidak Terdaftar
-            $table->string('nomor_sk')->nullable(); // SK Kemenkumham / Kemendagri
+            $table->string('bentuk_organisasi');
+            $table->string('status_legalitas');
+            $table->string('nomor_sk')->nullable();
 
             // Profil Kegiatan
-            $table->string('kegiatan_utama'); // Sosial / Agama / Pendidikan
+            $table->string('kegiatan_utama');
             $table->integer('jumlah_anggota')->nullable();
-            $table->string('afiliasi')->nullable(); // Hubungan dgn parpol/org lain
+            $table->string('afiliasi')->nullable();
 
-            // Status Pengawasan (Penting)
-            $table->string('status_pengawasan')->default('aktif'); // aktif / waspada / dibekukan
+            // Status
+            $table->string('status_pengawasan')->default('aktif');
+
+            // === KOLOM WAJIB UNTUK SISTEM VERIFIKASI ===
+            $table->string('status_verifikasi')->default('pending');
 
             $table->string('foto_lambang')->nullable();
             $table->timestamps();

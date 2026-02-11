@@ -18,6 +18,7 @@ class Wna extends Model
         'sponsor',
         'tempat_tinggal',   // Harus ada
         'masa_berlaku_izin',
+        'status_verifikasi',
         'foto'
     ];
 

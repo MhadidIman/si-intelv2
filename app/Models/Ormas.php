@@ -19,6 +19,7 @@ class Ormas extends Model
         'jumlah_anggota',
         'afiliasi',
         'status_pengawasan',
+        'status_verifikasi',
         'foto_lambang'
     ];
 

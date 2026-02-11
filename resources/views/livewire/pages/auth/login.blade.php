@@ -23,45 +23,65 @@ $login = function () {
 ?>
 
 <div>
-    <!-- Session Status -->
+    <div class="flex flex-col items-center justify-center mb-6">
+        <img src="{{ asset('img/logo-kejaksaan.png') }}" class="w-24 h-24 mb-4 drop-shadow-sm" alt="Logo Kejaksaan">
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">SI-INTEL V2</h2>
+        <p class="text-sm text-gray-500">Sistem Informasi Intelijen Kejaksaan</p>
+    </div>
+
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <form wire:submit="login">
-        <!-- Email Address -->
         <div>
             <x-input-label for="nip" :value="__('NIP (Nomor Induk Pegawai)')" />
-            <x-text-input wire:model="form.nip" id="nip" class="block mt-1 w-full" type="number" name="nip" required autofocus autocomplete="username" placeholder="Masukkan 18 digit NIP" />
+            <x-text-input
+                wire:model="form.nip"
+                id="nip"
+                class="block mt-1 w-full border-gray-300 focus:border-green-600 focus:ring-green-600 rounded-md shadow-sm"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="18"
+                name="nip"
+                required
+                autofocus
+                autocomplete="username"
+                placeholder="Masukkan 18 digit NIP" />
             <x-input-error :messages="$errors->get('form.nip')" class="mt-2" />
         </div>
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
 
-            <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full"
+        <div class="mt-4">
+            <x-input-label for="password" :value="__('Kata Sandi')" />
+
+            <x-text-input
+                wire:model="form.password"
+                id="password"
+                class="block mt-1 w-full border-gray-300 focus:border-green-600 focus:ring-green-600 rounded-md shadow-sm"
                 type="password"
                 name="password"
-                required autocomplete="current-password" />
+                required
+                autocomplete="current-password"
+                placeholder="••••••••" />
 
             <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
         </div>
 
-        <!-- Remember Me -->
         <div class="block mt-4">
-            <label for="remember" class="inline-flex items-center">
-                <input wire:model="form.remember" id="remember" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+            <label for="remember" class="inline-flex items-center cursor-pointer">
+                <input wire:model="form.remember" id="remember" type="checkbox" class="rounded border-gray-300 text-green-700 shadow-sm focus:ring-green-600" name="remember">
+                <span class="ms-2 text-sm text-gray-600">{{ __('Ingat Saya') }}</span>
             </label>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
+        <div class="flex items-center justify-between mt-6">
             @if (Route::has('password.request'))
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}" wire:navigate>
-                {{ __('Forgot your password?') }}
+            <a class="underline text-sm text-gray-500 hover:text-green-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition" href="{{ route('password.request') }}" wire:navigate>
+                {{ __('Lupa Kata Sandi?') }}
             </a>
             @endif
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
+            <x-primary-button class="ms-3 bg-green-700 hover:bg-green-800 focus:bg-green-800 active:bg-green-900 transition ease-in-out duration-150">
+                {{ __('Masuk Sistem') }}
             </x-primary-button>
         </div>
     </form>

@@ -28,12 +28,17 @@
             {{ session('message') }}
         </div>
         @endif
+        @if (session()->has('error'))
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 shadow rounded-r">
+            {{ session('error') }}
+        </div>
+        @endif
 
-        <div class="bg-white p-4 rounded-lg shadow mb-6">
-            <input wire:model.live="search" type="text" placeholder="Cari nama buronan atau kasus..." class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        <div class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-100">
+            <input wire:model.live="search" type="text" placeholder="Cari nama buronan atau kasus..." class="w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500">
         </div>
 
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-slate-50">
@@ -41,7 +46,7 @@
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Foto</th>
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Identitas Buronan</th>
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kasus & Status Hukum</th>
-                            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Status Pencarian</th>
+                            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Verifikasi</th>
                             <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
@@ -50,9 +55,9 @@
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($item->foto)
-                                <img class="h-16 w-16 rounded object-cover border border-gray-300" src="{{ asset('storage/' . $item->foto) }}" alt="Foto DPO">
+                                <img class="h-14 w-14 rounded object-cover border border-gray-300 shadow-sm" src="{{ asset('storage/' . $item->foto) }}" alt="Foto DPO">
                                 @else
-                                <div class="h-16 w-16 rounded bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center border border-gray-300">
+                                <div class="h-14 w-14 rounded bg-gray-100 flex items-center justify-center text-gray-400 text-xs text-center border border-gray-200">
                                     No Image
                                 </div>
                                 @endif
@@ -62,25 +67,34 @@
                                 <div class="text-xs text-gray-500">
                                     Lahir: {{ $item->tempat_lahir }}, {{ $item->tanggal_lahir ? $item->tanggal_lahir->format('d M Y') : '-' }}
                                 </div>
-                                <div class="text-xs text-gray-500 mt-1 truncate max-w-xs">
+                                <div class="text-xs text-gray-500 mt-1 truncate max-w-xs italic">
                                     Ciri: {{ $item->ciri_fisik ?? '-' }}
                                 </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-900 font-medium">{{ $item->kasus }}</div>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300 mt-1">
-                                    {{ $item->status_hukum }}
-                                </span>
+                                <div class="flex gap-2 mt-1">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-800 border border-gray-300">
+                                        {{ $item->status_hukum }}
+                                    </span>
+                                    @if($item->status_pencarian == 'buron')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-200">
+                                        BURON
+                                    </span>
+                                    @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
+                                        TERTANGKAP
+                                    </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if($item->status_pencarian == 'buron')
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 border border-red-200">
-                                    BURON
-                                </span>
+                                @if($item->status_verifikasi == 'disetujui')
+                                <span class="px-2 py-1 text-[10px] font-bold bg-green-100 text-green-800 rounded border border-green-200 uppercase">Disetujui</span>
+                                @elseif($item->status_verifikasi == 'ditolak')
+                                <span class="px-2 py-1 text-[10px] font-bold bg-red-100 text-red-800 rounded border border-red-200 uppercase">Ditolak</span>
                                 @else
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 border border-green-200">
-                                    TERTANGKAP
-                                </span>
+                                <span class="px-2 py-1 text-[10px] font-bold bg-yellow-100 text-yellow-800 rounded border border-yellow-200 uppercase">Pending</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -89,13 +103,21 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                     </svg>
                                 </a>
-                                <button wire:click="edit({{ $item->id }})" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
-                                <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data DPO ini?" class="text-red-600 hover:text-red-900">Hapus</button>
+
+                                @if(auth()->user()->role === 'admin')
+                                <button wire:click="edit({{ $item->id }})" class="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-xs font-bold shadow-sm transition mr-2">
+                                    VERIFIKASI
+                                </button>
+                                <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data DPO ini?" class="text-red-600 hover:text-red-900 font-bold text-xs">Hapus</button>
+                                @elseif(auth()->id() === $item->user_id)
+                                <button wire:click="edit({{ $item->id }})" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs mr-2">Edit</button>
+                                <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data DPO ini?" class="text-red-600 hover:text-red-900 font-bold text-xs">Hapus</button>
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                            <td colspan="5" class="px-6 py-10 text-center text-gray-500 italic font-medium">
                                 Tidak ada data DPO.
                             </td>
                         </tr>
@@ -110,7 +132,7 @@
     </div>
 
     @if($showModal)
-    <div class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed z-50 inset-0 overflow-y-auto">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="$set('showModal', false)"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
@@ -132,26 +154,47 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Tempat Lahir</label>
                                     <input type="text" wire:model="tempat_lahir" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm">
-                                    @error('tempat_lahir') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
                                     <input type="date" wire:model="tanggal_lahir" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm">
-                                    @error('tanggal_lahir') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Ciri-Ciri Fisik</label>
                                 <textarea wire:model="ciri_fisik" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm" placeholder="Tinggi badan, warna kulit, tanda khusus..."></textarea>
-                                @error('ciri_fisik') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
+
+                            @if(auth()->user()->role === 'admin' && $is_edit)
+                            <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200 shadow-inner">
+                                <label class="block text-sm font-bold text-yellow-800 mb-2 flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Verifikasi Pimpinan
+                                </label>
+                                <div class="flex gap-4 mt-2">
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
+                                        <input type="radio" wire:model="status_verifikasi" value="pending" class="text-yellow-600 focus:ring-yellow-500">
+                                        <span class="ml-2 text-xs font-bold text-yellow-700 uppercase">Pending</span>
+                                    </label>
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
+                                        <input type="radio" wire:model="status_verifikasi" value="disetujui" class="text-green-600 focus:ring-green-500">
+                                        <span class="ml-2 text-xs font-bold text-green-700 uppercase">Setujui</span>
+                                    </label>
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
+                                        <input type="radio" wire:model="status_verifikasi" value="ditolak" class="text-red-600 focus:ring-red-500">
+                                        <span class="ml-2 text-xs font-bold text-red-700 uppercase">Tolak</span>
+                                    </label>
+                                </div>
+                            </div>
+                            @endif
                         </div>
 
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Kasus / Perkara</label>
-                                <input type="text" wire:model="kasus" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm" placeholder="Pasal yang dilanggar...">
-                                @error('kasus') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                <input type="text" wire:model="kasus" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Status Hukum</label>
@@ -162,7 +205,6 @@
                                     <option value="Terpidana">Terpidana</option>
                                     <option value="Saksi">Saksi</option>
                                 </select>
-                                @error('status_hukum') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Status Pencarian</label>
@@ -170,38 +212,30 @@
                                     <option value="buron">BURON (Belum Tertangkap)</option>
                                     <option value="tertangkap">SUDAH TERTANGKAP</option>
                                 </select>
-                                @error('status_pencarian') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
 
-                            <div class="border rounded-lg p-3 bg-gray-50">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Foto Buronan</label>
+                            <div class="border rounded-lg p-3 bg-gray-50 border-dashed border-gray-300">
+                                <label class="block text-xs font-bold text-gray-700 mb-2 italic">Foto Buronan</label>
                                 <div class="flex items-center space-x-4">
                                     @if ($foto)
-                                    <img src="{{ $foto->temporaryUrl() }}" class="h-16 w-16 object-cover rounded border border-green-500 shadow-md">
+                                    <img src="{{ $foto->temporaryUrl() }}" class="h-16 w-16 object-cover rounded border-2 border-red-500 shadow-sm">
                                     @elseif ($old_foto)
-                                    <img src="{{ asset('storage/' . $old_foto) }}" class="h-16 w-16 object-cover rounded border border-gray-300">
-                                    @else
-                                    <div class="h-16 w-16 bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg>
-                                    </div>
+                                    <img src="{{ asset('storage/' . $old_foto) }}" class="h-16 w-16 object-cover rounded border border-gray-300 shadow-sm">
                                     @endif
-                                    <input type="file" wire:model="foto" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
+                                    <input type="file" wire:model="foto" class="text-xs">
                                 </div>
-                                <div wire:loading wire:target="foto" class="text-xs text-blue-500 mt-1 font-bold italic">Sedang mengupload foto...</div>
-                                @error('foto') <span class="text-red-500 text-xs block mt-1">{{ $message }}</span> @enderror
+                                <div wire:loading wire:target="foto" class="text-xs text-blue-600 mt-2 font-bold animate-pulse">Sedang mengupload...</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" wire:click="store" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm transition-all disabled:opacity-50">
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t">
+                    <button type="button" wire:click="store" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition">
                         <span wire:loading.remove wire:target="store">Simpan Data</span>
                         <span wire:loading wire:target="store">Memproses...</span>
                     </button>
-                    <button type="button" wire:click="$set('showModal', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" wire:click="$set('showModal', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all">
                         Batal
                     </button>
                 </div>

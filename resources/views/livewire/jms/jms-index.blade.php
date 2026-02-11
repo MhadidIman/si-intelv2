@@ -37,7 +37,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal & Sekolah</th>
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Materi & Narasumber</th>
-                            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Verifikasi</th>
+                            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Foto</th>
                             <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
@@ -75,8 +75,16 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                     </svg>
                                 </a>
-                                <button wire:click="edit({{ $item->id }})" class="text-indigo-600 hover:text-indigo-900 mr-3 font-bold">Edit</button>
-                                <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data?" class="text-red-600 hover:text-red-900 font-bold">Hapus</button>
+
+                                @if(auth()->user()->role === 'admin')
+                                <button wire:click="edit({{ $item->id }})" class="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-xs font-bold shadow-sm transition mr-2">
+                                    VERIFIKASI
+                                </button>
+                                <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data?" class="text-red-600 hover:text-red-900 font-bold text-xs">Hapus</button>
+                                @elseif(auth()->id() === $item->user_id)
+                                <button wire:click="edit({{ $item->id }})" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs mr-2">Edit</button>
+                                <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data?" class="text-red-600 hover:text-red-900 font-bold text-xs">Hapus</button>
+                                @endif
                             </td>
                         </tr>
                         @empty
@@ -126,20 +134,25 @@
                             </div>
 
                             @if(auth()->user()->role === 'admin' && $is_edit)
-                            <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                                <label class="block text-sm font-bold text-yellow-800 mb-2">Verifikasi Admin</label>
-                                <div class="flex gap-4">
-                                    <label class="inline-flex items-center cursor-pointer">
+                            <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200 shadow-inner">
+                                <label class="block text-sm font-bold text-yellow-800 mb-2 flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Panel Verifikasi Pimpinan
+                                </label>
+                                <div class="flex gap-4 mt-2">
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
                                         <input type="radio" wire:model="status_verifikasi" value="pending" class="text-yellow-600 focus:ring-yellow-500">
-                                        <span class="ml-2 text-xs font-bold text-yellow-700">PENDING</span>
+                                        <span class="ml-2 text-xs font-bold text-yellow-700 uppercase">Pending</span>
                                     </label>
-                                    <label class="inline-flex items-center cursor-pointer">
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
                                         <input type="radio" wire:model="status_verifikasi" value="disetujui" class="text-green-600 focus:ring-green-500">
-                                        <span class="ml-2 text-xs font-bold text-green-700">SETUJUI</span>
+                                        <span class="ml-2 text-xs font-bold text-green-700 uppercase">Setujui</span>
                                     </label>
-                                    <label class="inline-flex items-center cursor-pointer">
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
                                         <input type="radio" wire:model="status_verifikasi" value="ditolak" class="text-red-600 focus:ring-red-500">
-                                        <span class="ml-2 text-xs font-bold text-red-700">TOLAK</span>
+                                        <span class="ml-2 text-xs font-bold text-red-700 uppercase">Tolak</span>
                                     </label>
                                 </div>
                             </div>
@@ -171,7 +184,7 @@
                     </div>
                 </div>
                 <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t">
-                    <button type="button" wire:click="store" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                    <button type="button" wire:click="store" wire:loading.attr="disabled" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition">
                         <span wire:loading.remove wire:target="store">Simpan Perubahan</span>
                         <span wire:loading wire:target="store">Memproses...</span>
                     </button>

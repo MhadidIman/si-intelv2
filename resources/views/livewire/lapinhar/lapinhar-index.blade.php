@@ -29,12 +29,17 @@
             {{ session('message') }}
         </div>
         @endif
+        @if (session()->has('error'))
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 shadow rounded-r">
+            {{ session('error') }}
+        </div>
+        @endif
 
-        <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <div class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-100">
             <input wire:model.live="search" type="text" placeholder="Cari berdasarkan Nomor Surat, Peristiwa, atau Bidang..." class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
         </div>
 
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-slate-50">
@@ -42,7 +47,7 @@
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal & No. Surat</th>
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Bidang</th>
                             <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Isi Peristiwa</th>
-                            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Verifikasi</th>
                             <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
@@ -64,11 +69,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 @if($item->status_verifikasi == 'disetujui')
-                                <span class="px-2 py-1 text-xs font-bold leading-none text-green-100 bg-green-600 rounded">Disetujui</span>
+                                <span class="px-2 py-1 text-[10px] font-bold bg-green-100 text-green-800 rounded border border-green-200 uppercase">Disetujui</span>
                                 @elseif($item->status_verifikasi == 'ditolak')
-                                <span class="px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded">Ditolak</span>
+                                <span class="px-2 py-1 text-[10px] font-bold bg-red-100 text-red-800 rounded border border-red-200 uppercase">Ditolak</span>
                                 @else
-                                <span class="px-2 py-1 text-xs font-bold leading-none text-yellow-800 bg-yellow-300 rounded">Pending</span>
+                                <span class="px-2 py-1 text-[10px] font-bold bg-yellow-100 text-yellow-800 rounded border border-yellow-200 uppercase">Pending</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -78,13 +83,20 @@
                                     </svg>
                                 </a>
 
-                                <button wire:click="edit({{ $item->id }})" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
-                                <button wire:click="delete({{ $item->id }})" wire:confirm="Yakin hapus laporan ini?" class="text-red-600 hover:text-red-900">Hapus</button>
+                                @if(auth()->user()->role === 'admin')
+                                <button wire:click="edit({{ $item->id }})" class="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-xs font-bold shadow-sm transition mr-2">
+                                    VERIFIKASI
+                                </button>
+                                <button wire:click="delete({{ $item->id }})" wire:confirm="Yakin hapus laporan ini?" class="text-red-600 hover:text-red-900 font-bold text-xs">Hapus</button>
+                                @elseif(auth()->id() === $item->user_id)
+                                <button wire:click="edit({{ $item->id }})" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs mr-2">Edit</button>
+                                <button wire:click="delete({{ $item->id }})" wire:confirm="Yakin hapus laporan ini?" class="text-red-600 hover:text-red-900 font-bold text-xs">Hapus</button>
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                            <td colspan="5" class="px-6 py-10 text-center text-gray-500 italic font-medium">
                                 Belum ada Laporan Informasi Harian.
                             </td>
                         </tr>
@@ -99,9 +111,9 @@
     </div>
 
     @if($showModal)
-    <div class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed z-50 inset-0 overflow-y-auto">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="$set('showModal', false)"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
             <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
@@ -137,6 +149,31 @@
                                 <label class="block text-sm font-medium text-gray-700">Sumber Informasi</label>
                                 <input type="text" wire:model="sumber_informasi" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Contoh: Masyarakat, Penyelidikan Terbuka">
                             </div>
+
+                            @if(auth()->user()->role === 'admin' && $is_edit)
+                            <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200 shadow-inner">
+                                <label class="block text-sm font-bold text-yellow-800 mb-2 flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Verifikasi Pimpinan
+                                </label>
+                                <div class="flex gap-4 mt-2">
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
+                                        <input type="radio" wire:model="status_verifikasi" value="pending" class="text-yellow-600 focus:ring-yellow-500">
+                                        <span class="ml-2 text-xs font-bold text-yellow-700 uppercase">Pending</span>
+                                    </label>
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
+                                        <input type="radio" wire:model="status_verifikasi" value="disetujui" class="text-green-600 focus:ring-green-500">
+                                        <span class="ml-2 text-xs font-bold text-green-700 uppercase">Setujui</span>
+                                    </label>
+                                    <label class="inline-flex items-center cursor-pointer bg-white px-3 py-1 rounded border hover:bg-gray-50">
+                                        <input type="radio" wire:model="status_verifikasi" value="ditolak" class="text-red-600 focus:ring-red-500">
+                                        <span class="ml-2 text-xs font-bold text-red-700 uppercase">Tolak</span>
+                                    </label>
+                                </div>
+                            </div>
+                            @endif
                         </div>
 
                         <div class="space-y-4">
@@ -150,14 +187,27 @@
                                 <textarea wire:model="pendapat" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Analisa potensi ancaman dan saran tindak lanjut..."></textarea>
                                 @error('pendapat') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Sifat Laporan</label>
+                                <div class="flex gap-4 mt-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" wire:model="status" value="rahasia" class="text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Rahasia</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" wire:model="status" value="biasa" class="text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Biasa</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" wire:click="store" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 sm:ml-3 sm:w-auto sm:text-sm">
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t">
+                    <button type="button" wire:click="store" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 sm:ml-3 sm:w-auto sm:text-sm transition">
                         Simpan Laporan
                     </button>
-                    <button type="button" wire:click="$set('showModal', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" wire:click="$set('showModal', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
                         Batal
                     </button>
                 </div>

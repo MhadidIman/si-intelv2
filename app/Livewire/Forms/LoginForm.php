@@ -12,7 +12,9 @@ use Livewire\Form;
 
 class LoginForm extends Form
 {
-    #[Validate('required|numeric|digits:18')] // Validasi NIP wajib 18 angka
+    // Menggunakan NIP sebagai pengenal login
+    // size:18 memastikan panjang karakter harus tepat 18 (tidak kurang/lebih)
+    #[Validate('required|string|size:18')]
     public string $nip = '';
 
     #[Validate('required|string')]
@@ -22,28 +24,37 @@ class LoginForm extends Form
     public bool $remember = false;
 
     /**
-     * Attempt to authenticate the request's credentials.
-     *
-     * @throws \Illuminate\Validation\ValidationException
+     * Menangani upaya autentikasi menggunakan NIP.
      */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        // UBAH DISINI: Gunakan 'nip' sebagai kredensial login
+        // Proses Login: Cek kecocokan NIP dan Password di database
         if (! Auth::attempt(['nip' => $this->nip, 'password' => $this->password], $this->remember)) {
+            // Jika gagal, catat percobaan gagal di RateLimiter
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'form.nip' => trans('auth.failed'), // Pesan error jika NIP/Password salah
+                'form.nip' => 'NIP atau Password yang Anda masukkan tidak valid.',
             ]);
         }
 
+        // Jika berhasil, bersihkan catatan RateLimiter
         RateLimiter::clear($this->throttleKey());
+
+        // Logika Tambahan: Pesan Selamat Datang Berdasarkan Role
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            session()->flash('message', 'Selamat Datang Kembali, Komandan! Sistem Siap Digunakan.');
+        } else {
+            session()->flash('message', 'Selamat Datang, Petugas. Selamat Bertugas!');
+        }
     }
 
     /**
-     * Ensure the authentication request is not rate limited.
+     * Memastikan permintaan autentikasi tidak dibatasi (rate limited) akibat spam login.
      */
     protected function ensureIsNotRateLimited(): void
     {
@@ -64,7 +75,7 @@ class LoginForm extends Form
     }
 
     /**
-     * Get the authentication rate limiting throttle key.
+     * Mendapatkan kunci pembatas (throttle key) unik berdasarkan NIP dan IP Address.
      */
     protected function throttleKey(): string
     {

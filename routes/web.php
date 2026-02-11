@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReportController;
 
 // --- IMPORT KOMPONEN LIVEWIRE ---
+// PENTING: Dashboard harus di-import agar variabel $totalPending terbaca
+use App\Livewire\Dashboard;
 use App\Livewire\Users\UserIndex;
 use App\Livewire\Lapinhar\LapinharIndex;
 use App\Livewire\Dpo\DpoIndex;
@@ -23,8 +25,9 @@ use App\Livewire\Kerawanan\KerawananIndex;
 // Halaman Depan (Welcome)
 Route::view('/', 'welcome');
 
-// Dashboard Utama
-Route::view('dashboard', 'dashboard')
+// --- DASHBOARD UTAMA (FIX ERROR VARIABEL) ---
+// Menggunakan Class Component, bukan view biasa
+Route::get('dashboard', Dashboard::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
