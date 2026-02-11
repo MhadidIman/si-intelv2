@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Dashboard;
 
 use Livewire\Component;
-use Livewire\Attributes\Layout;
 use App\Models\Lapinhar;
 use App\Models\Dpo;
 use App\Models\Ormas;
@@ -12,23 +11,18 @@ use App\Models\JmsActivity;
 use App\Models\PamSdo;
 use Illuminate\Support\Facades\Auth;
 
-#[Layout('layouts.app')]
-class Dashboard extends Component  // <--- Pastikan extends Component
+class DashboardIndex extends Component
 {
     public function render()
     {
-        // ... (codingan logic statistik yang tadi) ...
-
-        // 1. Statistik
+        // Hitung data real dari database
         $totalLapinhar = Lapinhar::count();
         $totalDpo = Dpo::where('status_pencarian', 'buron')->count();
         $totalOrmas = Ormas::where('status_pengawasan', 'aktif')->count();
         $totalWna = Wna::count();
 
-        // 2. Tabel Terbaru
         $latestLapinhar = Lapinhar::latest()->take(5)->get();
 
-        // 3. Pending
         $pending = [
             'lapinhar' => Lapinhar::where('status_verifikasi', 'pending')->count(),
             'dpo'      => Dpo::where('status_verifikasi', 'pending')->count(),
@@ -37,16 +31,18 @@ class Dashboard extends Component  // <--- Pastikan extends Component
             'jms'      => JmsActivity::where('status_verifikasi', 'pending')->count(),
             'pam'      => PamSdo::where('status_verifikasi', 'pending')->count(),
         ];
+
         $totalPending = array_sum($pending);
 
-        return view('livewire.dashboard', compact(
-            'totalLapinhar',
-            'totalDpo',
-            'totalOrmas',
-            'totalWna',
-            'latestLapinhar',
-            'pending',
-            'totalPending'
-        ));
+        // Pastikan path view-nya benar (dashboard.dashboard)
+        return view('livewire.dashboard.dashboard', [
+            'totalLapinhar' => $totalLapinhar,
+            'totalDpo' => $totalDpo,
+            'totalOrmas' => $totalOrmas,
+            'totalWna' => $totalWna,
+            'latestLapinhar' => $latestLapinhar,
+            'pending' => $pending,
+            'totalPending' => $totalPending
+        ])->layout('layouts.app');
     }
 }

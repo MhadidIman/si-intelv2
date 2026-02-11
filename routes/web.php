@@ -4,8 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReportController;
 
 // --- IMPORT KOMPONEN LIVEWIRE ---
-// PENTING: Dashboard harus di-import agar variabel $totalPending terbaca
-use App\Livewire\Dashboard;
+use App\Livewire\Dashboard\DashboardIndex;
 use App\Livewire\Users\UserIndex;
 use App\Livewire\Lapinhar\LapinharIndex;
 use App\Livewire\Dpo\DpoIndex;
@@ -18,29 +17,19 @@ use App\Livewire\Kerawanan\KerawananIndex;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes (Aplikasi SI-INTEL)
+| Web Routes - SI-INTEL V2 (Intelligence Operations System)
 |--------------------------------------------------------------------------
 */
 
-// Halaman Depan (Welcome)
-Route::view('/', 'welcome');
+// Halaman Depan (Public)
+Route::view('/', 'welcome')->name('welcome');
 
-// --- DASHBOARD UTAMA (FIX ERROR VARIABEL) ---
-// Menggunakan Class Component, bukan view biasa
-Route::get('dashboard', Dashboard::class)
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+// --- AREA TERAUTENTIKASI ---
+Route::middleware(['auth', 'verified'])->group(function () {
 
-// Halaman Profil User (Bawaan Breeze)
-Route::view('profile', 'profile')
-    ->middleware(['auth'])
-    ->name('profile');
-
-// --- GRUP RUTE OPERASIONAL (Wajib Login) ---
-Route::middleware(['auth'])->group(function () {
-
-    // 1. MANAJEMEN PERSONIL
-    Route::get('/users', UserIndex::class)->name('users.index');
+    // 1. DASHBOARD & PROFIL
+    Route::get('dashboard', DashboardIndex::class)->name('dashboard');
+    Route::view('profile', 'profile')->name('profile');
 
     // 2. MODUL OPERASIONAL INTELIJEN
     Route::get('/lapinhar', LapinharIndex::class)->name('lapinhar.index');
@@ -49,50 +38,42 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ormas', OrmasIndex::class)->name('ormas.index');
     Route::get('/pam-sdo', PamSdoIndex::class)->name('pam-sdo.index');
 
-    // 3. MODUL PELAYANAN & GIAT
+    // 3. MODUL PELAYANAN & GIAT (BINMATKUM)
     Route::get('/lapdu', LapduIndex::class)->name('lapdu.index');
     Route::get('/jms', JmsIndex::class)->name('jms.index');
     Route::get('/kerawanan', KerawananIndex::class)->name('kerawanan.index');
 
-    // 4. RUTE CETAK LAPORAN (PDF)
+    // 4. KHUSUS ADMINISTRATOR (SISTEM)
+    // Jika Abang sudah punya middleware role, pasang di sini.
+    // Sementara saya biarkan terbuka, tapi sebaiknya dikunci.
+    Route::get('/users', UserIndex::class)->name('users.index');
+
+    // 5. RUTE CETAK LAPORAN (PDF ENGINE)
     Route::controller(ReportController::class)
-        ->prefix('reports')            // URL diawali dengan /reports/...
-        ->name('reports.')             // Nama route diawali dengan reports....
+        ->prefix('reports')
+        ->name('reports.')
         ->group(function () {
-
-            // Cetak Lapinhar
+            // Bulk Reports (Rekap)
             Route::get('/lapinhar', 'cetakLapinhar')->name('lapinhar');
-            Route::get('/lapinhar/{id}', 'cetakLapinharSatuan')->name('lapinhar.satuan');
-
-            // Cetak DPO
             Route::get('/dpo', 'cetakDpo')->name('dpo');
-            Route::get('/dpo/{id}', 'cetakDpoSatuan')->name('dpo.satuan');
-
-            // Cetak WNA
             Route::get('/wna', 'cetakWna')->name('wna');
-            Route::get('/wna/{id}', 'cetakWnaSatuan')->name('wna.satuan');
-
-            // Cetak Ormas
             Route::get('/ormas', 'cetakOrmas')->name('ormas');
-            Route::get('/ormas/{id}', 'cetakOrmasSatuan')->name('ormas.satuan');
-
-            // Cetak PAM SDO
             Route::get('/pam-sdo', 'cetakPamSdo')->name('pam-sdo');
-            Route::get('/pam-sdo/{id}', 'cetakPamSdoSatuan')->name('pam-sdo.satuan');
-
-            // Cetak JMS
             Route::get('/jms', 'cetakJms')->name('jms');
-            Route::get('/jms/{id}', 'cetakJmsSatuan')->name('jms.satuan');
-
-            // Cetak Peta Kerawanan
             Route::get('/kerawanan', 'cetakKerawanan')->name('kerawanan');
-            Route::get('/kerawanan/{id}', 'cetakKerawananSatuan')->name('kerawanan.satuan');
-
-            // Cetak Lapdu (Pengaduan)
             Route::get('/lapdu', 'cetakLapdu')->name('lapdu');
+
+            // Single Item Reports (Satuan)
+            Route::get('/lapinhar/{id}', 'cetakLapinharSatuan')->name('lapinhar.satuan');
+            Route::get('/dpo/{id}', 'cetakDpoSatuan')->name('dpo.satuan');
+            Route::get('/wna/{id}', 'cetakWnaSatuan')->name('wna.satuan');
+            Route::get('/ormas/{id}', 'cetakOrmasSatuan')->name('ormas.satuan');
+            Route::get('/pam-sdo/{id}', 'cetakPamSdoSatuan')->name('pam-sdo.satuan');
+            Route::get('/jms/{id}', 'cetakJmsSatuan')->name('jms.satuan');
+            Route::get('/kerawanan/{id}', 'cetakKerawananSatuan')->name('kerawanan.satuan');
             Route::get('/lapdu/{id}', 'cetakLapduSatuan')->name('lapdu.satuan');
 
-            // Cetak Statistik Kinerja
+            // System Logs & Stats
             Route::get('/user-stats', 'cetakUserStats')->name('user-stats');
         });
 });
