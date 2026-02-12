@@ -163,8 +163,8 @@
                 Banjarmasin, {{ now()->translatedFormat('d F Y') }}<br>
                 <strong>KEPALA SEKSI INTELIJEN,</strong>
                 <br><br><br><br><br>
-                <u><strong>DIMAS PURNAMA PUTRA, S.H., M.H.</strong></u><br>
-                Jaksa Madya NIP. 19850101 201001 1 001
+                <u><strong>BUDI SANTOSO, S.H., M.H.</strong></u><br>
+                Jaksa Madya NIP. 198501012010121001
             </td>
         </tr>
     </table>

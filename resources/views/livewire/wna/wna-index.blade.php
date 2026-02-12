@@ -115,23 +115,32 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end gap-2 items-center">
-                                    <a href="{{ route('reports.wna.satuan', $item->id) }}" target="_blank" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+
+                                    <a href="{{ route('reports.wna.satuan', $item->id) }}" target="_blank" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Cetak PDF">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                         </svg>
                                     </a>
 
                                     @if(auth()->user()->role === 'admin')
-                                    <button wire:click="edit({{ $item->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all active:scale-95">
+                                    <button wire:click="edit({{ $item->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all active:scale-95 text-[10px] tracking-widest">
                                         VERIFIKASI
+                                    </button>
+                                    @else
+                                    <button wire:click="edit({{ $item->id }})" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Edit Data">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
                                     </button>
                                     @endif
 
-                                    <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data pengawasan WNA ini?" class="p-2 text-rose-400 hover:text-rose-600">
+                                    @if(auth()->user()->role === 'admin' || auth()->id() === $item->user_id)
+                                    <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data pengawasan WNA ini?" class="p-2 text-rose-400 hover:text-rose-600" title="Hapus Data">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -157,11 +166,11 @@
     </div>
 
     @if($showModal)
-    <div class="fixed z-[100] inset-0 overflow-y-auto">
+    <div class="fixed z-[100] inset-0 overflow-y-auto" x-data="{ open: true }">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="$set('showModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200">
+            <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
                 <div class="bg-indigo-700 px-8 py-6 flex justify-between items-center">
                     <div>
                         <h3 class="text-xl font-black text-white uppercase tracking-tight">
@@ -176,7 +185,7 @@
                     </button>
                 </div>
 
-                <div class="px-8 py-8">
+                <div class="px-8 py-8 overflow-y-auto max-h-[75vh]">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-6">
                             <div>

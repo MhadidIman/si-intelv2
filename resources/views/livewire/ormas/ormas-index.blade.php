@@ -89,14 +89,14 @@
                                     </svg>
                                     {{ $item->nama_pimpinan }}
                                 </div>
-                                <div class="mt-2">
-                                    <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 font-black text-[9px]">{{ $item->bentuk_organisasi }}</span>
+                                <div class="mt-2 flex flex-col gap-1">
+                                    <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 font-black text-[9px] w-fit">{{ $item->bentuk_organisasi }}</span>
+                                    <span class="text-[9px] text-slate-400 font-bold">{{ Str::limit($item->kegiatan_utama, 30) }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="font-bold text-slate-700 tracking-normal normal-case">{{ $item->status_legalitas }}</div>
                                 <div class="text-slate-400 font-medium tracking-normal normal-case mb-2">SK: {{ $item->nomor_sk ?? 'DALAM PROSES' }}</div>
-
                                 @php
                                 $pStatus = [
                                 'aktif' => 'bg-emerald-50 text-emerald-600 border-emerald-200',
@@ -121,31 +121,32 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <div class="flex justify-end gap-2">
-                                    <a href="{{ route('reports.ormas.satuan', $item->id) }}" target="_blank"
-                                        class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Cetak Lembar Data">
+                                <div class="flex justify-end gap-2 items-center">
+                                    <a href="{{ route('reports.ormas.satuan', $item->id) }}" target="_blank" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Cetak PDF">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                         </svg>
                                     </a>
 
                                     @if(auth()->user()->role === 'admin')
-                                    <button wire:click="edit({{ $item->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl font-bold shadow-sm transition-all active:scale-95">
+                                    <button wire:click="edit({{ $item->id }})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all active:scale-95 text-[10px] tracking-widest">
                                         VERIFIKASI
                                     </button>
-                                    @elseif(auth()->id() === $item->user_id)
-                                    <button wire:click="edit({{ $item->id }})" class="p-2 text-indigo-400 hover:text-indigo-600 rounded-xl">
+                                    @else
+                                    <button wire:click="edit({{ $item->id }})" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Edit Data">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
                                     </button>
                                     @endif
 
-                                    <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data ormas ini dari sistem?" class="p-2 text-rose-300 hover:text-rose-600 transition-colors">
+                                    @if(auth()->user()->role === 'admin' || auth()->id() === $item->user_id)
+                                    <button wire:click="delete({{ $item->id }})" wire:confirm="Hapus data ormas ini dari sistem?" class="p-2 text-rose-300 hover:text-rose-600 transition-colors" title="Hapus Data">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -169,11 +170,11 @@
     </div>
 
     @if($showModal)
-    <div class="fixed z-[100] inset-0 overflow-y-auto">
+    <div class="fixed z-[100] inset-0 overflow-y-auto" x-data="{ open: true }">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="$set('showModal', false)"></div>
 
-            <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200">
+            <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
                 <div class="bg-indigo-600 px-8 py-6 flex justify-between items-center shadow-lg shadow-indigo-600/10">
                     <div>
                         <h3 class="text-xl font-black text-white uppercase tracking-tight">
@@ -188,23 +189,48 @@
                     </button>
                 </div>
 
-                <div class="px-8 py-8">
+                <div class="px-8 py-8 overflow-y-auto max-h-[75vh]">
+                    @if ($errors->any())
+                    <div class="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl">
+                        <div class="flex items-center gap-2 mb-2 text-rose-700 font-bold text-xs uppercase">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Periksa Kembali Inputan
+                        </div>
+                        <ul class="list-disc list-inside text-[10px] text-rose-600 font-medium">
+                            @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-6">
                             <div>
-                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nama Lengkap Organisasi</label>
-                                <input type="text" wire:model="nama_organisasi" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3 font-bold" placeholder="Contoh: LSM Pemberdayaan Masyarakat">
-                                @error('nama_organisasi') <span class="text-rose-500 text-[10px] font-bold mt-1 uppercase">{{ $message }}</span> @enderror
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nama Lengkap Organisasi *</label>
+                                <input type="text" wire:model="nama_organisasi" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3 font-bold">
                             </div>
 
                             <div>
-                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Pimpinan / Ketua Umum</label>
-                                <input type="text" wire:model="nama_pimpinan" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3" placeholder="Masukkan nama pimpinan saat ini">
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Pimpinan / Ketua Umum *</label>
+                                <input type="text" wire:model="nama_pimpinan" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3">
                             </div>
 
                             <div>
-                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Alamat Sekretariat Utama</label>
-                                <textarea wire:model="alamat_sekretariat" rows="3" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3 resize-none" placeholder="Masukkan alamat lengkap kantor operasional"></textarea>
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Alamat Sekretariat Utama *</label>
+                                <textarea wire:model="alamat_sekretariat" rows="3" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3 resize-none"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Kegiatan Utama Organisasi *</label>
+                                <textarea wire:model="kegiatan_utama" rows="3" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3 resize-none" placeholder="Jelaskan fokus kegiatan organisasi..."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Afiliasi / Induk Organisasi</label>
+                                <input type="text" wire:model="afiliasi" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3" placeholder="Jika ada (Contoh: GP Ansor Pusat)">
                             </div>
 
                             @if(auth()->user()->role === 'admin' && $is_edit)
@@ -227,7 +253,7 @@
                         <div class="space-y-6">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Bentuk Org.</label>
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Bentuk Org. *</label>
                                     <select wire:model="bentuk_organisasi" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3">
                                         <option value="">-- PILIH --</option>
                                         <option value="Ormas">Ormas</option>
@@ -237,15 +263,15 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Jumlah Anggota</label>
-                                    <input type="number" wire:model="jumlah_anggota" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3" placeholder="0">
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Jlh. Anggota</label>
+                                    <input type="number" wire:model="jumlah_anggota" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3">
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Status Legalitas</label>
-                                    <input type="text" wire:model="status_legalitas" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3" placeholder="Terdaftar/Berbadan Hukum">
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Status Legalitas *</label>
+                                    <input type="text" wire:model="status_legalitas" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3" placeholder="Berbadan Hukum">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Status Pengawasan</label>
@@ -258,8 +284,8 @@
                             </div>
 
                             <div>
-                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nomor SK / AHU (Kemenkumham/Kesbangpol)</label>
-                                <input type="text" wire:model="nomor_sk" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3" placeholder="Masukkan nomor registrasi resmi">
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nomor SK / AHU</label>
+                                <input type="text" wire:model="nomor_sk" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-indigo-500 px-4 py-3" placeholder="Nomor AHU-XXXXX">
                             </div>
 
                             <div class="p-5 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl">

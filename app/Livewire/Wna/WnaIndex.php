@@ -9,6 +9,7 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon; // 1. Penting: Import Carbon untuk manipulasi tanggal
 
 #[Layout('layouts.app')]
 class WnaIndex extends Component
@@ -89,13 +90,19 @@ class WnaIndex extends Component
         $this->wna_id = $id;
         $this->nama_lengkap = $data->nama_lengkap;
         $this->tempat_lahir = $data->tempat_lahir;
-        $this->tanggal_lahir = $data->tanggal_lahir ? $data->tanggal_lahir->format('Y-m-d') : null;
+
+        // 2. PERBAIKAN UTAMA: Gunakan Carbon::parse() agar aman dari error "Call to member function format on string"
+        $this->tanggal_lahir = $data->tanggal_lahir ? Carbon::parse($data->tanggal_lahir)->format('Y-m-d') : null;
+
         $this->negara_asal = $data->negara_asal;
         $this->nomor_paspor = $data->nomor_paspor;
         $this->tujuan_kunjungan = $data->tujuan_kunjungan;
         $this->sponsor = $data->sponsor;
         $this->tempat_tinggal = $data->tempat_tinggal;
-        $this->masa_berlaku_izin = $data->masa_berlaku_izin ? $data->masa_berlaku_izin->format('Y-m-d') : null;
+
+        // 3. PERBAIKAN UTAMA: Sama seperti tanggal lahir
+        $this->masa_berlaku_izin = $data->masa_berlaku_izin ? Carbon::parse($data->masa_berlaku_izin)->format('Y-m-d') : null;
+
         $this->status_verifikasi = $data->status_verifikasi;
 
         $this->old_foto = $data->foto;
@@ -141,10 +148,18 @@ class WnaIndex extends Component
         if ($this->is_edit) {
             $wna = Wna::findOrFail($this->wna_id);
             $wna->update($dataToSave);
+
+            // Opsional: Log Aktivitas
+            // \App\Models\User::logActivity('UPDATE WNA', 'Memperbarui data WNA: ' . $this->nama_lengkap);
+
             session()->flash('message', 'Data WNA berhasil diperbarui.');
         } else {
             $dataToSave['user_id'] = Auth::id();
             Wna::create($dataToSave);
+
+            // Opsional: Log Aktivitas
+            // \App\Models\User::logActivity('CREATE WNA', 'Menambahkan WNA baru: ' . $this->nama_lengkap);
+
             session()->flash('message', 'Data WNA baru berhasil ditambahkan.');
         }
 

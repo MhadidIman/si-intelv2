@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -12,9 +13,11 @@ use Livewire\Form;
 
 class LoginForm extends Form
 {
-    // Menggunakan NIP sebagai pengenal login
-    // size:18 memastikan panjang karakter harus tepat 18 (tidak kurang/lebih)
-    #[Validate('required|string|size:18')]
+    /**
+     * Kredensial menggunakan NIP (Nomor Induk Pegawai) 
+     * sesuai standar operasional Kejaksaan.
+     */
+    #[Validate('required|string')]
     public string $nip = '';
 
     #[Validate('required|string')]
@@ -24,37 +27,35 @@ class LoginForm extends Form
     public bool $remember = false;
 
     /**
-     * Menangani upaya autentikasi menggunakan NIP.
+     * Melakukan autentikasi ke dalam sistem terminal SI-INTEL V2.
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        // Proses Login: Cek kecocokan NIP dan Password di database
-        if (! Auth::attempt(['nip' => $this->nip, 'password' => $this->password], $this->remember)) {
-            // Jika gagal, catat percobaan gagal di RateLimiter
+        // Mencoba mencocokkan NIP dan Password di database
+        if (! Auth::attempt($this->only(['nip', 'password']), $this->remember)) {
+
+            // LOG AKTIFITAS: Mencatat percobaan login yang gagal untuk audit keamanan
+            User::logActivity('GAGAL LOGIN', 'Percobaan akses terminal menggunakan NIP: ' . $this->nip);
+
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'form.nip' => 'NIP atau Password yang Anda masukkan tidak valid.',
+                'form.nip' => trans('auth.failed'),
             ]);
         }
 
-        // Jika berhasil, bersihkan catatan RateLimiter
+        // LOG AKTIFITAS: Mencatat keberhasilan otentikasi ke dalam sistem
+        User::logActivity('LOGIN', 'Personil berhasil melakukan otentikasi ke terminal utama');
+
         RateLimiter::clear($this->throttleKey());
-
-        // Logika Tambahan: Pesan Selamat Datang Berdasarkan Role
-        $user = Auth::user();
-
-        if ($user->role === 'admin') {
-            session()->flash('message', 'Selamat Datang Kembali, Komandan! Sistem Siap Digunakan.');
-        } else {
-            session()->flash('message', 'Selamat Datang, Petugas. Selamat Bertugas!');
-        }
     }
 
     /**
-     * Memastikan permintaan autentikasi tidak dibatasi (rate limited) akibat spam login.
+     * Memastikan permintaan autentikasi tidak melampaui batas (Rate Limiting).
      */
     protected function ensureIsNotRateLimited(): void
     {
@@ -66,6 +67,9 @@ class LoginForm extends Form
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
+        // LOG AKTIFITAS: Mencatat pemblokiran akses sementara karena brute force
+        User::logActivity('SISTEM TERKUNCI', 'Akses diblokir sementara karena terlalu banyak percobaan login pada NIP: ' . $this->nip);
+
         throw ValidationException::withMessages([
             'form.nip' => trans('auth.throttle', [
                 'seconds' => $seconds,
@@ -75,7 +79,7 @@ class LoginForm extends Form
     }
 
     /**
-     * Mendapatkan kunci pembatas (throttle key) unik berdasarkan NIP dan IP Address.
+     * Mendapatkan kunci pembatas (throttle key) berdasarkan NIP dan IP Address.
      */
     protected function throttleKey(): string
     {

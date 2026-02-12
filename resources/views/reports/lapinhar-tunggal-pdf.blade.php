@@ -1,34 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 
 <head>
-    <title>Laporan Informasi Harian Satuan</title>
+    <meta charset="UTF-8">
+    <title>Laporan Informasi Harian - {{ $item->nomor_surat }}</title>
     <style>
+        /* Pengaturan Dasar Dokumen */
+        @page {
+            margin: 1.5cm;
+        }
+
         body {
             font-family: 'Times New Roman', serif;
             font-size: 12pt;
             line-height: 1.5;
-            padding: 20px;
+            color: #000;
+            margin: 0;
+            padding: 0;
         }
 
+        /* Header / Kop Surat */
         .header {
             text-align: center;
-            border-bottom: 3px double #000;
+            border-bottom: 2px solid #000;
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             position: relative;
         }
 
         .logo {
             position: absolute;
             left: 0;
-            top: 0;
-            width: 70px;
+            top: -5px;
+            width: 75px;
         }
 
         .header h3 {
             margin: 0;
             font-size: 12pt;
+            font-weight: normal;
             text-transform: uppercase;
         }
 
@@ -39,50 +49,78 @@
             text-transform: uppercase;
         }
 
+        /* Box Informasi Nomor & Perihal */
         .ref-box {
-            margin-top: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         .ref-box table {
-            border: none;
             width: 100%;
+            border: none;
         }
 
         .ref-box td {
-            border: none;
-            padding: 2px;
             vertical-align: top;
+            padding: 2px 0;
         }
 
+        /* Judul Dokumen */
         .title-doc {
             text-align: center;
             font-weight: bold;
             text-decoration: underline;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        /* Struktur Konten I, II, III, IV */
+        .section-container {
             margin-bottom: 20px;
         }
 
         .section-title {
             font-weight: bold;
-            margin-top: 15px;
-            text-decoration: underline;
+            display: block;
+            margin-bottom: 5px;
         }
 
         .section-content {
             text-align: justify;
-            margin-left: 20px;
-            margin-top: 5px;
+            margin-left: 45px;
+            display: block;
         }
 
-        .footer {
-            margin-top: 50px;
+        /* Bagian Tanda Tangan */
+        .ttd-wrapper {
+            margin-top: 40px;
             width: 100%;
+            /* Membersihkan float dari konten sebelumnya */
+            clear: both;
         }
 
-        .ttd {
+        .ttd-box {
             float: right;
-            width: 45%;
+            width: 50%;
             text-align: center;
+        }
+
+        .ttd-box p {
+            margin: 0;
+        }
+
+        .space-ttd {
+            height: 80px;
+        }
+
+        /* Perubahan: Menghapus footer-line dan mengatur NIP */
+        .nip-text {
+            margin-top: 5px;
+            font-size: 11pt;
+        }
+
+        /* Helper untuk cetak PDF */
+        .page-break {
+            page-break-after: always;
         }
     </style>
 </head>
@@ -105,7 +143,7 @@
             <tr>
                 <td>Sifat</td>
                 <td>:</td>
-                <td>{{ strtoupper($item->status) }}</td>
+                <td>{{ strtoupper($item->status ?? 'RAHASIA') }}</td>
             </tr>
             <tr>
                 <td>Lampiran</td>
@@ -122,35 +160,44 @@
 
     <div class="title-doc">LAPORAN INFORMASI</div>
 
-    <div class="section-title">I. PERISTIWA / FAKTA-FAKTA :</div>
-    <div class="section-content">
-        {{ $item->peristiwa }}
-    </div>
-
-    <div class="section-title">II. SUMBER INFORMASI :</div>
-    <div class="section-content">
-        Bahwa informasi tersebut diperoleh melalui : {{ $item->sumber_informasi }}
-    </div>
-
-    <div class="section-title">III. PENDAPAT / ANALISA :</div>
-    <div class="section-content">
-        {{ $item->pendapat }}
-    </div>
-
-    <div class="section-title">IV. SARAN / TINDAK LANJUT :</div>
-    <div class="section-content">
-        Diharapkan pimpinan dapat mempertimbangkan langkah-langkah strategis lebih lanjut guna mengantisipasi potensi kerawanan yang ada.
-    </div>
-
-    <div class="footer">
-        <div class="ttd">
-            <p>Banjarmasin, {{ \Carbon\Carbon::parse($item->tanggal_surat)->translatedFormat('d F Y') }}</p>
-            <p><strong>KEPALA SEKSI INTELIJEN</strong></p>
-            <br><br><br><br>
-            <p><u><strong>DIMAS PURNAMA PUTRA, S.H., M.H.</strong></u></p>
-            <p>Jaksa Madya NIP. 19850101 201001 1 001</p>
+    <div class="section-container">
+        <div class="section-title">I. PERISTIWA / FAKTA-FAKTA :</div>
+        <div class="section-content">
+            {{ $item->peristiwa }}
         </div>
     </div>
+
+    <div class="section-container">
+        <div class="section-title">II. SUMBER INFORMASI :</div>
+        <div class="section-content">
+            Bahwa informasi tersebut diperoleh melalui : {{ $item->sumber_informasi }}
+        </div>
+    </div>
+
+    <div class="section-container">
+        <div class="section-title">III. PENDAPAT / ANALISA :</div>
+        <div class="section-content">
+            {{ $item->pendapat }}
+        </div>
+    </div>
+
+    <div class="section-container">
+        <div class="section-title">IV. SARAN / TINDAK LANJUT :</div>
+        <div class="section-content">
+            Diharapkan pimpinan dapat mempertimbangkan langkah-langkah strategis lebih lanjut guna mengantisipasi potensi kerawanan yang ada.
+        </div>
+    </div>
+
+    <div class="ttd-wrapper">
+        <div class="ttd-box">
+            <p>Banjarmasin, {{ \Carbon\Carbon::parse($item->tanggal_surat)->translatedFormat('d F Y') }}</p>
+            <p><strong>KEPALA SEKSI INTELIJEN</strong></p>
+            <div class="space-ttd"></div>
+            <p><u><strong>BUDI SANTOSO, S.H., M.H.</strong></u></p>
+            <p class="nip-text">Jaksa Madya NIP. 198501012010121001</p>
+        </div>
+    </div>
+
 </body>
 
 </html>

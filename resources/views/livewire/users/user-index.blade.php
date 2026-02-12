@@ -70,7 +70,7 @@
                                             {{ substr($user->name, 0, 1) }}
                                         </div>
                                         @endif
-                                        <div class="absolute -bottom-1 -right-1 h-4 w-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+                                        <div class="absolute -bottom-1 -right-1 h-4 w-4 {{ $user->role === 'admin' ? 'bg-blue-500' : 'bg-emerald-500' }} border-2 border-white rounded-full"></div>
                                     </div>
                                     <div>
                                         <div class="text-sm font-black text-slate-800 tracking-normal normal-case">{{ $user->name }}</div>
@@ -87,8 +87,8 @@
                                 <div class="text-slate-400 font-medium tracking-normal normal-case mt-0.5">{{ $user->pangkat_golongan }}</div>
                             </td>
                             <td class="px-6 py-5 text-center">
-                                <span class="px-3 py-1 rounded-lg font-black text-[9px] {{ $user->role === 'admin' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600' }}">
-                                    {{ strtoupper($user->role ?? 'USER') }}
+                                <span class="px-3 py-1 rounded-lg font-black text-[9px] {{ $user->role === 'admin' ? 'bg-blue-900 text-blue-200 border border-blue-700' : 'bg-slate-100 text-slate-600' }}">
+                                    {{ strtoupper($user->role ?? 'STAF') }}
                                 </span>
                             </td>
                             <td class="px-8 py-5 text-right">
@@ -136,7 +136,7 @@
         <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="$set('showModal', false)"></div>
 
-            <div class="relative inline-block align-bottom bg-white rounded-[2.5rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-slate-200">
+            <div class="relative inline-block align-bottom bg-white rounded-[2.5rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-slate-200 animate-in fade-in zoom-in duration-300">
 
                 <div class="bg-slate-900 px-10 py-8 flex justify-between items-center relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
@@ -154,6 +154,25 @@
                 </div>
 
                 <div class="bg-white px-10 py-10">
+
+                    @if ($errors->any())
+                    <div class="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-3 animate-pulse">
+                        <div class="text-rose-500 shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-black text-rose-700 uppercase tracking-widest mb-1">Terdapat Kesalahan Input!</h4>
+                            <ul class="list-disc list-inside text-[11px] text-rose-600 font-medium">
+                                @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                    @endif
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
 
                         <div class="space-y-6">
@@ -162,15 +181,14 @@
                             </h4>
 
                             <div>
-                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Nama Lengkap & Gelar</label>
-                                <input type="text" wire:model="name" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 font-bold px-5 py-3.5" placeholder="Sesuai SK Jabatan">
-                                @error('name') <span class="text-rose-500 text-[10px] font-bold mt-1 uppercase">{{ $message }}</span> @enderror
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Nama Lengkap & Gelar <span class="text-rose-500">*</span></label>
+                                <input type="text" wire:model="name" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 font-bold px-5 py-3.5 @error('name') border-rose-500 bg-rose-50 @enderror" placeholder="Sesuai SK Jabatan">
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">NIP (18 DIGIT)</label>
-                                    <input type="text" wire:model="nip" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 px-5 py-3.5 font-black tracking-widest">
+                                    <input type="text" wire:model="nip" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 px-5 py-3.5 font-black tracking-widest @error('nip') border-rose-500 bg-rose-50 @enderror">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">NRP (JAKSA)</label>
@@ -213,8 +231,8 @@
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Pangkat / Gol.</label>
-                                    <select wire:model="pangkat_golongan" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-[11px] focus:ring-emerald-500 font-bold px-4 py-3.5">
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Pangkat / Gol. <span class="text-rose-500">*</span></label>
+                                    <select wire:model="pangkat_golongan" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-[11px] focus:ring-emerald-500 font-bold px-4 py-3.5 @error('pangkat_golongan') border-rose-500 @enderror">
                                         <option value="">-- PILIH --</option>
                                         <option value="Jaksa Utama (IV/e)">Jaksa Utama (IV/e)</option>
                                         <option value="Jaksa Madya (IV/a)">Jaksa Madya (IV/a)</option>
@@ -223,28 +241,29 @@
                                         <option value="PPNPN">PPNPN (Honorer)</option>
                                     </select>
                                 </div>
+
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Role Akses</label>
-                                    <select wire:model="role" class="w-full bg-slate-900 border-slate-800 text-emerald-400 rounded-2xl text-[11px] focus:ring-emerald-500 font-black px-4 py-3.5 uppercase tracking-widest">
-                                        <option value="user">USER / STAF</option>
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Role Akses <span class="text-rose-500">*</span></label>
+                                    <select wire:model="role" class="w-full bg-slate-900 border-slate-800 text-emerald-400 rounded-2xl text-[11px] focus:ring-emerald-500 font-black px-4 py-3.5 uppercase tracking-widest @error('role') border-rose-500 @enderror">
+                                        <option value="staff">USER / STAF</option>
                                         <option value="admin">ADMINISTRATOR</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Jabatan Struktural</label>
-                                <input type="text" wire:model="jabatan" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 px-5 py-3.5 font-bold" placeholder="Contoh: Kasi Intelijen">
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Jabatan Struktural <span class="text-rose-500">*</span></label>
+                                <input type="text" wire:model="jabatan" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 px-5 py-3.5 font-bold @error('jabatan') border-rose-500 bg-rose-50 @enderror" placeholder="Contoh: Kasi Intelijen">
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Email Terminal</label>
-                                    <input type="email" wire:model="email" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 px-5 py-3.5">
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Email Terminal <span class="text-rose-500">*</span></label>
+                                    <input type="email" wire:model="email" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 px-5 py-3.5 @error('email') border-rose-500 bg-rose-50 @enderror">
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Security Key</label>
-                                    <input type="password" wire:model="password" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 px-5 py-3.5" placeholder="Min. 8 Karakter">
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Password</label>
+                                    <input type="password" wire:model="password" class="w-full bg-slate-50 border-slate-200 rounded-2xl text-sm focus:ring-emerald-500 px-5 py-3.5 @error('password') border-rose-500 bg-rose-50 @enderror" placeholder="{{ $is_edit ? 'Biarkan kosong jika tetap' : 'Min. 6 Karakter' }}">
                                 </div>
                             </div>
                         </div>

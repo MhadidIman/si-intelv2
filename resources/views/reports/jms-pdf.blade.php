@@ -109,8 +109,8 @@
         <p>Banjarmasin, {{ now()->translatedFormat('d F Y') }}</p>
         <p><strong>KEPALA SEKSI INTELIJEN</strong></p>
         <br><br><br><br>
-        <p><u><strong>DIMAS PURNAMA PUTRA, S.H., M.H.</strong></u></p>
-        <p>Jaksa Madya NIP. 19850101 201001 1 001</p>
+        <p><u><strong>BUDI SANTOSO, S.H., M.H.</strong></u></p>
+        <p>Jaksa Madya NIP. 198501012010121001</p>
     </div>
 </body>
 

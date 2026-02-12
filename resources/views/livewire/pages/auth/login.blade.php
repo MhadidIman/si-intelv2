@@ -46,7 +46,7 @@ new class extends Component {
                 <img src="{{ asset('img/logo-kejaksaan.png') }}" class="h-20 w-auto mx-auto drop-shadow-2xl" alt="Logo Kejaksaan">
             </div>
             <h1 class="text-3xl font-black text-white tracking-tighter uppercase italic">
-                SI-INTEL<span class="text-emerald-500 not-italic ml-1">V2</span>
+                SI-INTEL<span class="text-emerald-500 not-italic ml-1">LIZZ</span>
             </h1>
             <div class="flex items-center justify-center gap-3 mt-3">
                 <span class="h-px w-8 bg-slate-700"></span>
